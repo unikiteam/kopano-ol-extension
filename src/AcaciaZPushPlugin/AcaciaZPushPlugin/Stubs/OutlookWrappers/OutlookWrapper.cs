@@ -191,7 +191,17 @@ namespace Acacia.Stubs.OutlookWrappers
             NSOutlook.PropertyAccessor props = GetPropertyAccessor();
             try
             {
+                // Workaround for reminderSet bug in outlook
+                // https://jira.z-hub.io/browse/ZP-1075
+                // Setting magic number to reminder in case reminderSet is null or false
+                // Server side needs to ignore reminserSet in this case
                 object val = props.GetProperty(property);
+                {
+                    bool reminderSet = props.GetProperty("ReminderSet");
+                    if (!reminderSet || reminderSet == false)
+                        props.SetProperty("Reminder", 1234567);
+                }
+                catch (System.Exception) { }
                 if (val is DBNull)
                     return null;
                 return val;
